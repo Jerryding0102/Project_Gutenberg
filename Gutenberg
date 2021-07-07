@@ -1,0 +1,21 @@
+import json, os, pprint, time
+from urllib import parse
+import requests
+from bs4 import BeautifulSoup
+
+listData = []
+url = 'https://www.gutenberg.org/browse/languages/zh'
+url_2='https://www.gutenberg.org/ebooks/'
+
+headers = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+
+def getMainlinks():
+    response = requests.get(url, headers= headers)
+    soup = BeautifulSoup(response.text)
+    a_elms = soup.select("a[href='/ebooks/24225']") 
+    for a in a_elms:
+        listData.append({
+            "title": a.text,
+            "link": parse.unquote( a.get("href"))
+        })
+pprint(listData)
