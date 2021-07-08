@@ -1,21 +1,40 @@
-import json, os, pprint, time
+import pprint, os,json,time
 from urllib import parse
 import requests
 from bs4 import BeautifulSoup
+import re
 
-listData = []
-url = 'https://www.gutenberg.org/browse/languages/zh'
-url_2='https://www.gutenberg.org/ebooks/'
 
-headers = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+listdata=[]
+
+rule = re.compile('[\u4E00-\u9FFF，。：「」；、？！『』]+')
+
+url="https://www.gutenberg.org/browse/languages/zh"
+url2="https://www.gutenberg.org/"
+
+headers = {
+    "User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+}
 
 def getMainlinks():
     response = requests.get(url, headers= headers)
-    soup = BeautifulSoup(response.text)
-    a_elms = soup.select("a[href='/ebooks/24225']") 
-    for a in a_elms:
-        listData.append({
-            "title": a.text,
-            "link": parse.unquote( a.get("href"))
-        })
-pprint(listData)
+    soup = BeautifulSoup(response.text, "lxml")
+    li_elms = soup.select('div.pgdbbylanguage li.pgdbetext a') 
+    
+    for a in li_elms:
+        a.text_check = re.findall(rule, a.text)
+        a.text_res = ''.join(a.text_check)
+        
+        if a.text_res == '':
+            pass
+        
+        else:
+            listdata.append({
+                "title": a.text_res,
+                "link": url2 + parse.unquote(a.get('href'))
+            })
+    
+pprint.pprint(listdata)
+if __name__ == "__main__":
+    time1 = time.time()
+    getMainlinks()
